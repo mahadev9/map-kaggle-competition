@@ -57,14 +57,14 @@ def get_sequence_classifier(model_name, num_labels):
     )
 
 
-def get_training_arguments(EPOCHS=10, train_batch_size=8, eval_batch_size=16):
+def get_training_arguments(epochs=10, train_batch_size=8, eval_batch_size=16):
     return TrainingArguments(
         output_dir="./output",
         do_train=True,
         do_eval=True,
         eval_strategy="steps",
         save_strategy="steps",  # no for no saving
-        num_train_epochs=EPOCHS,
+        num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         learning_rate=5e-5,
