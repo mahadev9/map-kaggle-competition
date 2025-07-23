@@ -15,9 +15,9 @@ def get_model_name(is_kaggle, root_path) -> str:
     if is_kaggle:
         return os.path.join(
             root_path,
-            "microsoftdeberta-v3-small/transformers/default/1/deberta-v3-small",
+            "deberta/transformers/default/1/deberta-v3",
         )
-    return "microsoft/deberta-v3-xsmall"
+    return "microsoft/deberta-v3-large"
 
 
 def stringify_input(row) -> str:
@@ -31,7 +31,7 @@ def stringify_input(row) -> str:
     if "is_student_explanation_correct" in row:
         output += f"Explanation Correctness: {'Correct' if row['is_student_explanation_correct'] else 'Incorrect'}\n"
 
-    output += "\nTask: Identify the student's misconception category and specific misconception."
+    # output += "\nTask: Identify the student's misconception category and specific misconception."
     return output.strip()
 
 
@@ -73,12 +73,13 @@ def get_training_arguments(epochs=10, train_batch_size=8, eval_batch_size=16):
         save_steps=200,
         eval_steps=200,
         save_total_limit=1,
+        label_names=['labels'],
         metric_for_best_model="map@3",
         greater_is_better=True,
         load_best_model_at_end=True,
         report_to="none",
-        use_mps_device=True,  # Use MPS for Apple Silicon
-        # bf16=True,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
+        # use_mps_device=True,  # Use MPS for Apple Silicon
+        bf16=True,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
         # fp16=True, # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
     )
 
