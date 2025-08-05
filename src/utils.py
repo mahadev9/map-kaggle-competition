@@ -17,21 +17,31 @@ def get_model_name(is_kaggle, root_path) -> str:
             root_path,
             "deberta/transformers/default/1/deberta-v3",
         )
-    return "microsoft/deberta-v3-large"
+    return "microsoft/deberta-v3-base"
 
 
 def stringify_input(row) -> str:
-    output = (
-        f"Math Question: {row['QuestionText']}\n"
-        f"Student's Answer: {row['MC_Answer']}\n"
-        f"Student's Explanation: {row['StudentExplanation']}\n"
-    )
-    if "is_mc_answer_correct" in row:
-        output += f"Answer Correctness: {'Correct' if row['is_mc_answer_correct'] else 'Incorrect'}\n"
-    if "is_student_explanation_correct" in row:
-        output += f"Explanation Correctness: {'Correct' if row['is_student_explanation_correct'] else 'Incorrect'}\n"
+    # output = (
+    #     f"Math Question: {row['QuestionText']}\n"
+    #     f"Student's Answer: {row['MC_Answer']}\n"
+    #     f"Student's Explanation: {row['StudentExplanation']}\n"
+    # )
+    # if "is_mc_answer_correct" in row:
+    #     output += f"Answer Correctness: {'Correct' if row['is_mc_answer_correct'] else 'Incorrect'}\n"
+    # if "is_student_explanation_correct" in row:
+    #     output += f"Explanation Correctness: {'Correct' if row['is_student_explanation_correct'] else 'Incorrect'}\n"
 
-    # output += "\nTask: Identify the student's misconception category and specific misconception."
+    x = "This answer is correct"
+    if not row["is_mc_answer_correct"]:
+        x = "This answer is incorrect"
+
+    output = (
+        f"Question: {row['QuestionText']}\n"
+        f"Answer: {row['MC_Answer']}\n"
+        f"{x}\n"
+        f"Student's Explanation: {row['StudentExplanation']}"
+    )
+
     return output.strip()
 
 
