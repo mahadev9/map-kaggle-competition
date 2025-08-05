@@ -8,6 +8,8 @@ from transformers import (
     AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
+    EarlyStoppingCallback,
+    SchedulerType,
 )
 
 
@@ -17,7 +19,7 @@ def get_model_name(is_kaggle, root_path) -> str:
             root_path,
             "deberta-v3-base/transformers/default/1",
         )
-    return "microsoft/deberta-v3-base"
+    return "answerdotai/ModernBERT-large"
 
 
 def stringify_input(row) -> str:
@@ -67,7 +69,12 @@ def get_sequence_classifier(model_name, num_labels):
     )
 
 
-def get_training_arguments(epochs=10, train_batch_size=8, eval_batch_size=16):
+def get_training_arguments(
+    epochs=10,
+    train_batch_size=8,
+    eval_batch_size=16,
+    bf16_support=True,
+):
     return TrainingArguments(
         output_dir="./output",
         do_train=True,
@@ -78,19 +85,24 @@ def get_training_arguments(epochs=10, train_batch_size=8, eval_batch_size=16):
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         learning_rate=5e-5,
+        weight_decay=0.01,
+        warmup_ratio=0.1,
+        lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
+        lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
         save_steps=200,
         eval_steps=200,
         save_total_limit=1,
-        label_names=['labels'],
+        label_names=["labels"],
         metric_for_best_model="map@3",
         greater_is_better=True,
         load_best_model_at_end=True,
         report_to="none",
+        gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
-        bf16=True,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
-        # fp16=True, # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
+        bf16=True if bf16_support else False,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
+        fp16=True if not bf16_support else False,  # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
     )
 
 
@@ -101,7 +113,9 @@ def get_trainer(
     train_ds,
     val_ds,
     compute_metrics=compute_map3,
+    early_stopping_patience=4,
 ):
+    callbacks = [EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)]
     return Trainer(
         model=model,
         args=training_args,
@@ -109,4 +123,5 @@ def get_trainer(
         eval_dataset=val_ds,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
+        callbacks=callbacks,
     )
