@@ -13,25 +13,29 @@ from transformers import (
 )
 
 
-def get_model_name(is_kaggle, root_path) -> str:
+def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
-        return os.path.join(
-            root_path,
-            "modernbert-large/transformers/default/1",
-        )
+        return os.path.join(root_path, base_model)
     return "answerdotai/ModernBERT-large"
 
 
 def stringify_input(row) -> str:
     # output = (
-    #     f"Math Question: {row['QuestionText']}\n"
-    #     f"Student's Answer: {row['MC_Answer']}\n"
-    #     f"Student's Explanation: {row['StudentExplanation']}\n"
+    #     f"Question: {row['QuestionText']}\n"
+    #     f"Answer: {row['MC_Answer']}\n"
     # )
     # if "is_mc_answer_correct" in row:
-    #     output += f"Answer Correctness: {'Correct' if row['is_mc_answer_correct'] else 'Incorrect'}\n"
+    #     x = "This answer is correct"
+    #     if not row["is_mc_answer_correct"]:
+    #         x = "This answer is incorrect"
+    #     output += f"{x}\n"
+
+    # output += f"Student's Explanation: {row['StudentExplanation']}\n"
     # if "is_student_explanation_correct" in row:
-    #     output += f"Explanation Correctness: {'Correct' if row['is_student_explanation_correct'] else 'Incorrect'}\n"
+    #     x = "The explanation is correct"
+    #     if not row['is_student_explanation_correct']:
+    #         x = "The explanation is incorrect"
+    #     output += f"Explanation Correctness: {x}\n"
 
     x = "This answer is correct"
     if not row["is_mc_answer_correct"]:
@@ -123,5 +127,5 @@ def get_trainer(
         eval_dataset=val_ds,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
-        callbacks=callbacks,
+        # callbacks=callbacks,
     )
