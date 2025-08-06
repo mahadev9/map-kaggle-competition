@@ -60,12 +60,12 @@ def compute_map3(eval_pred) -> Dict[str, float]:
 
 
 def get_tokenizer(model_name):
-    return AutoTokenizer.from_pretrained(model_name)
+    return AutoTokenizer.from_pretrained(model_name, reference_compile=False)
 
 
 def get_sequence_classifier(model_name, num_labels):
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels
+        model_name, num_labels=num_labels, reference_compile=False
     )
 
 
