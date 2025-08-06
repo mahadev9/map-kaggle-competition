@@ -17,7 +17,7 @@ def get_model_name(is_kaggle, root_path) -> str:
     if is_kaggle:
         return os.path.join(
             root_path,
-            "deberta-v3-base/transformers/default/1",
+            "modernbert-large/transformers/default/1",
         )
     return "answerdotai/ModernBERT-large"
 
