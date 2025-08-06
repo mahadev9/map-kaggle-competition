@@ -20,33 +20,33 @@ def get_model_name(is_kaggle, root_path, base_model="") -> str:
 
 
 def stringify_input(row) -> str:
-    # output = (
-    #     f"Question: {row['QuestionText']}\n"
-    #     f"Answer: {row['MC_Answer']}\n"
-    # )
-    # if "is_mc_answer_correct" in row:
-    #     x = "This answer is correct"
-    #     if not row["is_mc_answer_correct"]:
-    #         x = "This answer is incorrect"
-    #     output += f"{x}\n"
-
-    # output += f"Student's Explanation: {row['StudentExplanation']}\n"
-    # if "is_student_explanation_correct" in row:
-    #     x = "The explanation is correct"
-    #     if not row['is_student_explanation_correct']:
-    #         x = "The explanation is incorrect"
-    #     output += f"Explanation Correctness: {x}\n"
-
-    x = "This answer is correct"
-    if not row["is_mc_answer_correct"]:
-        x = "This answer is incorrect"
-
     output = (
         f"Question: {row['QuestionText']}\n"
         f"Answer: {row['MC_Answer']}\n"
-        f"{x}\n"
-        f"Student's Explanation: {row['StudentExplanation']}"
     )
+    if "is_mc_answer_correct" in row:
+        x = "This answer is correct"
+        if not row["is_mc_answer_correct"]:
+            x = "This answer is incorrect"
+        output += f"{x}\n"
+
+    output += f"Student's Explanation: {row['StudentExplanation']}\n"
+    if "is_student_explanation_correct" in row:
+        x = "The explanation is correct"
+        if not row['is_student_explanation_correct']:
+            x = "The explanation is incorrect"
+        output += f"Explanation Correctness: {x}\n"
+
+    # x = "This answer is correct"
+    # if not row["is_mc_answer_correct"]:
+    #     x = "This answer is incorrect"
+
+    # output = (
+    #     f"Question: {row['QuestionText']}\n"
+    #     f"Answer: {row['MC_Answer']}\n"
+    #     f"{x}\n"
+    #     f"Student's Explanation: {row['StudentExplanation']}"
+    # )
 
     return output.strip()
 
@@ -127,5 +127,5 @@ def get_trainer(
         eval_dataset=val_ds,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
-        # callbacks=callbacks,
+        callbacks=callbacks,
     )
