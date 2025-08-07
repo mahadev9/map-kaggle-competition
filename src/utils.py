@@ -11,6 +11,7 @@ from transformers import (
     EarlyStoppingCallback,
     SchedulerType,
     IntervalStrategy,
+    BitsAndBytesConfig,
 )
 from transformers.trainer_utils import SaveStrategy
 
@@ -18,19 +19,26 @@ from transformers.trainer_utils import SaveStrategy
 def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
         return os.path.join(root_path, base_model)
-    return "answerdotai/ModernBERT-large"
-    # return "meta-llama/Llama-3.2-1B"
+    # return "answerdotai/ModernBERT-large"
+    return "jhu-clsp/ettin-encoder-1b"
 
 
 def stringify_input(row) -> str:
     output = [
-        "[CLS]",
         f"Question: {row['QuestionText']}",
         f"Answer: {row['MC_Answer']}",
     ]
+
+    # ModernBERT
+    # if "is_mc_answer_correct" in row:
+    #     correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+    #     x = f"The student's answer is {correctness}."
+    #     output.append(x)
+
+    # Ettin-Encoder
     if "is_mc_answer_correct" in row:
-        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
-        x = f"The student's answer is {correctness}."
+        correctness = "Yes" if row["is_mc_answer_correct"] else "No"
+        x = f"Is the student's answer correct? {correctness}"
         output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
@@ -43,7 +51,7 @@ def stringify_input(row) -> str:
     #         x = "The student's explanation contains a misconception"
     #     output.append(x)
 
-    return " [SEP] ".join(output)
+    return "\n".join(output)
 
 
 def compute_map3(eval_pred) -> Dict[str, float]:
@@ -58,13 +66,29 @@ def compute_map3(eval_pred) -> Dict[str, float]:
     return {"map@3": scores.mean()}
 
 
+def get_bnb_config():
+    return BitsAndBytesConfig(
+        load_in_8bit=True,
+        bnb_8bit_use_double_quant=True,  # Use double quantization
+        bnb_8bit_quant_type="nf8",  # Use normalized float 8
+        bnb_8bit_compute_dtype=torch.bfloat16,
+    )
+
+
 def get_tokenizer(model_name):
-    return AutoTokenizer.from_pretrained(model_name, reference_compile=False)
+    return AutoTokenizer.from_pretrained(model_name)
 
 
-def get_sequence_classifier(model_name, num_labels):
+def get_sequence_classifier(model_name, num_labels, do_predict=False):
+    extra_kwargs = {
+        "quantization_config": get_bnb_config(),
+    }
+    if do_predict:
+        extra_kwargs = {
+            "torch_dtype": torch.float16,
+        }
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels, reference_compile=False
+        model_name, num_labels=num_labels, device_map="auto", **extra_kwargs
     )
 
 
