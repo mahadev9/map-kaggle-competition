@@ -10,45 +10,40 @@ from transformers import (
     Trainer,
     EarlyStoppingCallback,
     SchedulerType,
+    IntervalStrategy,
 )
+from transformers.trainer_utils import SaveStrategy
 
 
 def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
         return os.path.join(root_path, base_model)
     return "answerdotai/ModernBERT-large"
+    # return "meta-llama/Llama-3.2-1B"
 
 
 def stringify_input(row) -> str:
-    output = (
-        f"Question: {row['QuestionText']}\n"
-        f"Answer: {row['MC_Answer']}\n"
-    )
+    output = [
+        "[CLS]",
+        f"Question: {row['QuestionText']}",
+        f"Answer: {row['MC_Answer']}",
+    ]
     if "is_mc_answer_correct" in row:
-        x = "This answer is correct"
-        if not row["is_mc_answer_correct"]:
-            x = "This answer is incorrect"
-        output += f"{x}\n"
+        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+        x = f"The student's answer is {correctness}."
+        output.append(x)
 
-    output += f"Student's Explanation: {row['StudentExplanation']}\n"
-    if "is_student_explanation_correct" in row:
-        x = "The explanation is correct"
-        if not row['is_student_explanation_correct']:
-            x = "The explanation is incorrect"
-        output += f"Explanation Correctness: {x}\n"
+    output.append(f"Student's Explanation: {row['StudentExplanation']}")
+    # if "is_student_explanation_correct" in row:
+    #     if row["is_student_explanation_correct"] == 0:
+    #         x = "The student's explanation is neither correct nor a misconception"
+    #     elif row["is_student_explanation_correct"] == 1:
+    #         x = "The student's explanation is correct"
+    #     elif row["is_student_explanation_correct"] == 2:
+    #         x = "The student's explanation contains a misconception"
+    #     output.append(x)
 
-    # x = "This answer is correct"
-    # if not row["is_mc_answer_correct"]:
-    #     x = "This answer is incorrect"
-
-    # output = (
-    #     f"Question: {row['QuestionText']}\n"
-    #     f"Answer: {row['MC_Answer']}\n"
-    #     f"{x}\n"
-    #     f"Student's Explanation: {row['StudentExplanation']}"
-    # )
-
-    return output.strip()
+    return " [SEP] ".join(output)
 
 
 def compute_map3(eval_pred) -> Dict[str, float]:
@@ -83,8 +78,8 @@ def get_training_arguments(
         output_dir="./output",
         do_train=True,
         do_eval=True,
-        eval_strategy="steps",
-        save_strategy="steps",  # no for no saving
+        eval_strategy=IntervalStrategy.STEPS,
+        save_strategy=SaveStrategy.STEPS,
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
@@ -117,7 +112,7 @@ def get_trainer(
     train_ds,
     val_ds,
     compute_metrics=compute_map3,
-    early_stopping_patience=4,
+    early_stopping_patience=5,
 ):
     callbacks = [EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)]
     return Trainer(
