@@ -19,7 +19,8 @@ from transformers.trainer_utils import SaveStrategy
 def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
         return os.path.join(root_path, base_model)
-    return "answerdotai/ModernBERT-large"
+    return "google/t5gemma-s-s-ul2"
+    # return "answerdotai/ModernBERT-large"
     # return "microsoft/deberta-v3-large"
     # return "jhu-clsp/ettin-encoder-1b"
 
@@ -111,12 +112,12 @@ def get_training_arguments(
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=1e-5,
+        learning_rate=2e-5,
         weight_decay=0.01,
         warmup_ratio=0.1,
-        # lr_scheduler_type=SchedulerType.LINEAR,
-        lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
-        lr_scheduler_kwargs={"min_lr": 1e-6},
+        lr_scheduler_type=SchedulerType.LINEAR,
+        # lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
+        # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
         save_steps=200,
