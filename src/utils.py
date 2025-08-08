@@ -77,19 +77,22 @@ def get_bnb_config():
 
 
 def get_tokenizer(model_name):
-    return AutoTokenizer.from_pretrained(model_name)
-
-
-def get_sequence_classifier(model_name, num_labels, do_predict=False):
-    extra_kwargs = {
-        "quantization_config": get_bnb_config(),
-    }
-    if do_predict:
+    extra_kwargs = {}
+    if "modernbert" in model_name.lower():
         extra_kwargs = {
-            "torch_dtype": torch.bfloat16,
+            "reference_compile": False,
+        }
+    return AutoTokenizer.from_pretrained(model_name, **extra_kwargs)
+
+
+def get_sequence_classifier(model_name, num_labels):
+    extra_kwargs = {}
+    if "modernbert" in model_name.lower():
+        extra_kwargs = {
+            "reference_compile": False,
         }
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels,
+        model_name, num_labels=num_labels, **extra_kwargs
     )
 
 
@@ -108,11 +111,11 @@ def get_training_arguments(
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=5e-5,
+        learning_rate=1e-5,
         weight_decay=0.01,
         warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
-        lr_scheduler_kwargs={"min_lr": 1e-5},
+        lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
         save_steps=200,
