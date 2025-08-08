@@ -89,7 +89,7 @@ def get_sequence_classifier(model_name, num_labels, do_predict=False):
             "torch_dtype": torch.bfloat16,
         }
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels, device_map="auto",
+        model_name, num_labels=num_labels,
     )
 
 
