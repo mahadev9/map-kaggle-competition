@@ -114,6 +114,7 @@ def get_training_arguments(
         learning_rate=1e-5,
         weight_decay=0.01,
         warmup_ratio=0.1,
+        # lr_scheduler_type=SchedulerType.LINEAR,
         lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
         lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
