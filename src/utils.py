@@ -19,8 +19,9 @@ from transformers.trainer_utils import SaveStrategy
 def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
         return os.path.join(root_path, base_model)
-    # return "answerdotai/ModernBERT-large"
-    return "jhu-clsp/ettin-encoder-1b"
+    return "answerdotai/ModernBERT-large"
+    # return "microsoft/deberta-v3-large"
+    # return "jhu-clsp/ettin-encoder-1b"
 
 
 def stringify_input(row) -> str:
@@ -29,17 +30,17 @@ def stringify_input(row) -> str:
         f"Answer: {row['MC_Answer']}",
     ]
 
-    # ModernBERT
-    # if "is_mc_answer_correct" in row:
-    #     correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
-    #     x = f"The student's answer is {correctness}."
-    #     output.append(x)
+    # ModernBERT/DeBERTaV3
+    if "is_mc_answer_correct" in row:
+        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+        x = f"The student's answer is {correctness}."
+        output.append(x)
 
     # Ettin-Encoder
-    if "is_mc_answer_correct" in row:
-        correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-        x = f"Is the student's answer correct? {correctness}"
-        output.append(x)
+    # if "is_mc_answer_correct" in row:
+    #     correctness = "Yes" if row["is_mc_answer_correct"] else "No"
+    #     x = f"Is the student's answer correct? {correctness}"
+    #     output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
     # if "is_student_explanation_correct" in row:
@@ -85,10 +86,10 @@ def get_sequence_classifier(model_name, num_labels, do_predict=False):
     }
     if do_predict:
         extra_kwargs = {
-            "torch_dtype": torch.float16,
+            "torch_dtype": torch.bfloat16,
         }
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels, device_map="auto", **extra_kwargs
+        model_name, num_labels=num_labels, device_map="auto",
     )
 
 
@@ -111,7 +112,7 @@ def get_training_arguments(
         weight_decay=0.01,
         warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
-        lr_scheduler_kwargs={"min_lr": 1e-6},
+        lr_scheduler_kwargs={"min_lr": 1e-5},
         logging_dir="./logs",
         logging_steps=50,
         save_steps=200,
