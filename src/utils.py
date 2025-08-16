@@ -19,10 +19,7 @@ from transformers.trainer_utils import SaveStrategy
 def get_model_name(is_kaggle, root_path, base_model="") -> str:
     if is_kaggle:
         return os.path.join(root_path, base_model)
-    return "google/t5gemma-s-s-ul2"
-    # return "answerdotai/ModernBERT-large"
-    # return "microsoft/deberta-v3-large"
-    # return "jhu-clsp/ettin-encoder-1b"
+    return base_model
 
 
 def stringify_input(row) -> str:
@@ -128,7 +125,7 @@ def get_training_arguments(
         greater_is_better=True,
         load_best_model_at_end=True,
         report_to="none",
-        gradient_checkpointing=True,
+        # gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
         bf16=True if bf16_support else False,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
         fp16=True if not bf16_support else False,  # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
