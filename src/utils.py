@@ -125,7 +125,7 @@ def get_training_arguments(
         greater_is_better=True,
         load_best_model_at_end=True,
         report_to="none",
-        # gradient_checkpointing=True,
+        gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
         bf16=True if bf16_support else False,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
         fp16=True if not bf16_support else False,  # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
@@ -149,5 +149,5 @@ def get_trainer(
         eval_dataset=val_ds,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
-        callbacks=callbacks,
+        # callbacks=callbacks,
     )
