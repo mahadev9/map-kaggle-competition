@@ -83,14 +83,17 @@ def get_tokenizer(model_name):
     return AutoTokenizer.from_pretrained(model_name, **extra_kwargs)
 
 
-def get_sequence_classifier(model_name, num_labels):
+def get_sequence_classifier(model_name, num_labels, q_lora_config={}):
     extra_kwargs = {}
     if "modernbert" in model_name.lower():
         extra_kwargs = {
             "reference_compile": False,
         }
     return AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels, **extra_kwargs
+        model_name,
+        num_labels=num_labels,
+        **extra_kwargs,
+        **q_lora_config,
     )
 
 
@@ -100,6 +103,11 @@ def get_training_arguments(
     eval_batch_size=16,
     bf16_support=True,
 ):
+    # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
+    extra_kwargs = {"fp16": True}
+    if bf16_support:
+        # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
+        extra_kwargs = {"bf16": True}
     return TrainingArguments(
         output_dir="./output",
         do_train=True,
@@ -127,8 +135,7 @@ def get_training_arguments(
         report_to="none",
         gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
-        bf16=True if bf16_support else False,  # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
-        fp16=True if not bf16_support else False,  # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
+        **extra_kwargs,
     )
 
 
