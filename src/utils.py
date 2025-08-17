@@ -21,23 +21,29 @@ def get_model_name(is_kaggle, root_path, base_model="") -> str:
     return base_model
 
 
-def stringify_input(row) -> str:
+def stringify_input(row, model_name) -> str:
     output = [
         f"Question: {row['QuestionText']}",
         f"Answer: {row['MC_Answer']}",
     ]
 
     # ModernBERT/DeBERTaV3
-    if "is_mc_answer_correct" in row:
-        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
-        x = f"This answer is {correctness}."
-        output.append(x)
+    if "modernbert" in model_name.lower() or "deberta" in model_name.lower():
+        if "is_mc_answer_correct" in row:
+            correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+            x = f"This answer is {correctness}."
+            output.append(x)
 
-    # Ettin-Encoder
-    # if "is_mc_answer_correct" in row:
-    #     correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-    #     x = f"Correct? {correctness}"
-    #     output.append(x)
+    # Ettin-Encoder/Gemma/Qwen
+    if (
+        "ettin" in model_name.lower()
+        or "gemma" in model_name.lower()
+        or "qwen" in model_name.lower()
+    ):
+        if "is_mc_answer_correct" in row:
+            correctness = "Yes" if row["is_mc_answer_correct"] else "No"
+            x = f"Correct? {correctness}"
+            output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
     # if "is_student_explanation_correct" in row:
