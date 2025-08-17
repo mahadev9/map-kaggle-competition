@@ -11,7 +11,6 @@ from transformers import (
     EarlyStoppingCallback,
     SchedulerType,
     IntervalStrategy,
-    BitsAndBytesConfig,
 )
 from transformers.trainer_utils import SaveStrategy
 
@@ -25,20 +24,20 @@ def get_model_name(is_kaggle, root_path, base_model="") -> str:
 def stringify_input(row) -> str:
     output = [
         f"Question: {row['QuestionText']}",
-        f"Student's Answer: {row['MC_Answer']}",
+        f"Answer: {row['MC_Answer']}",
     ]
 
     # ModernBERT/DeBERTaV3
-    # if "is_mc_answer_correct" in row:
-    #     correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
-    #     x = f"The student's answer is {correctness}."
-    #     output.append(x)
+    if "is_mc_answer_correct" in row:
+        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+        x = f"This answer is {correctness}."
+        output.append(x)
 
     # Ettin-Encoder
-    if "is_mc_answer_correct" in row:
-        correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-        x = f"Is the student's answer correct? {correctness}"
-        output.append(x)
+    # if "is_mc_answer_correct" in row:
+    #     correctness = "Yes" if row["is_mc_answer_correct"] else "No"
+    #     x = f"Correct? {correctness}"
+    #     output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
     # if "is_student_explanation_correct" in row:
@@ -63,15 +62,6 @@ def compute_map3(eval_pred) -> Dict[str, float]:
     weights = np.array([1.0, 0.5, 1 / 3])
     scores = np.sum(match * weights, axis=1)
     return {"map@3": scores.mean()}
-
-
-def get_bnb_config():
-    return BitsAndBytesConfig(
-        load_in_8bit=True,
-        bnb_8bit_use_double_quant=True,  # Use double quantization
-        bnb_8bit_quant_type="nf8",  # Use normalized float 8
-        bnb_8bit_compute_dtype=torch.bfloat16,
-    )
 
 
 def get_tokenizer(model_name):
@@ -112,12 +102,12 @@ def get_training_arguments(
         output_dir="./output",
         do_train=True,
         do_eval=True,
-        eval_strategy=IntervalStrategy.STEPS,
-        save_strategy=SaveStrategy.STEPS,
+        eval_strategy=IntervalStrategy.EPOCH,
+        save_strategy=SaveStrategy.EPOCH,
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=2e-5,
+        learning_rate=4e-5,
         weight_decay=0.01,
         warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
