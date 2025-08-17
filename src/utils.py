@@ -25,20 +25,20 @@ def get_model_name(is_kaggle, root_path, base_model="") -> str:
 def stringify_input(row) -> str:
     output = [
         f"Question: {row['QuestionText']}",
-        f"Answer: {row['MC_Answer']}",
+        f"Student's Answer: {row['MC_Answer']}",
     ]
 
     # ModernBERT/DeBERTaV3
-    if "is_mc_answer_correct" in row:
-        correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
-        x = f"The student's answer is {correctness}."
-        output.append(x)
+    # if "is_mc_answer_correct" in row:
+    #     correctness = "correct" if row["is_mc_answer_correct"] else "incorrect"
+    #     x = f"The student's answer is {correctness}."
+    #     output.append(x)
 
     # Ettin-Encoder
-    # if "is_mc_answer_correct" in row:
-    #     correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-    #     x = f"Is the student's answer correct? {correctness}"
-    #     output.append(x)
+    if "is_mc_answer_correct" in row:
+        correctness = "Yes" if row["is_mc_answer_correct"] else "No"
+        x = f"Is the student's answer correct? {correctness}"
+        output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
     # if "is_student_explanation_correct" in row:
@@ -124,7 +124,7 @@ def get_training_arguments(
         # lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
-        logging_steps=50,
+        logging_steps=100,
         save_steps=200,
         eval_steps=200,
         save_total_limit=1,
@@ -133,7 +133,8 @@ def get_training_arguments(
         greater_is_better=True,
         load_best_model_at_end=True,
         report_to="none",
-        gradient_checkpointing=True,
+        # gradient_accumulation_steps=4,
+        # gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
         **extra_kwargs,
     )
