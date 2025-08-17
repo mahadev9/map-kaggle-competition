@@ -11,6 +11,7 @@ from transformers import (
     EarlyStoppingCallback,
     SchedulerType,
     IntervalStrategy,
+    DataCollatorWithPadding,
 )
 from transformers.trainer_utils import SaveStrategy
 
@@ -108,12 +109,12 @@ def get_training_arguments(
         output_dir="./output",
         do_train=True,
         do_eval=True,
-        eval_strategy=IntervalStrategy.EPOCH,
-        save_strategy=SaveStrategy.EPOCH,
+        eval_strategy=IntervalStrategy.STEPS,
+        save_strategy=SaveStrategy.STEPS,
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=4e-5,
+        learning_rate=2e-4,
         # weight_decay=0.01,
         # warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
@@ -121,8 +122,8 @@ def get_training_arguments(
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=100,
-        save_steps=200,
-        eval_steps=200,
+        save_steps=500,
+        eval_steps=500,
         save_total_limit=1,
         label_names=["labels"],
         metric_for_best_model="map@3",
@@ -153,5 +154,6 @@ def get_trainer(
         eval_dataset=val_ds,
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
+        data_collator=DataCollatorWithPadding(tokenizer),
         # callbacks=callbacks,
     )
