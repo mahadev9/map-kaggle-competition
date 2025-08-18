@@ -40,6 +40,7 @@ def stringify_input(row, model_name) -> str:
         "ettin" in model_name.lower()
         or "gemma" in model_name.lower()
         or "qwen" in model_name.lower()
+        or "deepseek" in model_name.lower()
     ):
         if "is_mc_answer_correct" in row:
             correctness = "Yes" if row["is_mc_answer_correct"] else "No"
