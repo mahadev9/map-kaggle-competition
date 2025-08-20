@@ -1,4 +1,5 @@
 import os
+import re
 
 import torch
 import numpy as np
@@ -22,10 +23,33 @@ def get_model_name(is_kaggle, root_path, base_model="") -> str:
     return base_model
 
 
+def convert_latex_to_text(text: str) -> str:
+    # Convert LaTeX fractions to text
+    text = re.sub(r"\\frac\{([^}]+)\}\{([^}]+)\}", r"(\1)/(\2)", text)
+
+    # Convert LaTeX multiplication
+    text = re.sub(r"\\times", "x", text)
+
+    # Convert LaTeX division
+    text = re.sub(r"\\div", "/", text)
+
+    # Handle LaTeX parentheses
+    text = re.sub(r"\\left\(", "(", text)
+    text = re.sub(r"\\right\)", ")", text)
+
+    # Remove LaTeX math delimiters
+    text = re.sub(r"\\(\s|\(|\))", r"\1", text)
+
+    # Remove remaining backslashes for simple commands
+    text = re.sub(r"\\", "", text)
+
+    return text.strip()
+
+
 def stringify_input(row, model_name) -> str:
     output = [
-        f"Question: {row['QuestionText']}",
-        f"Answer: {row['MC_Answer']}",
+        f"Question: {convert_latex_to_text(row['QuestionText'])}",
+        f"Answer: {convert_latex_to_text(row['MC_Answer'])}",
     ]
 
     # ModernBERT/DeBERTaV3
@@ -100,17 +124,26 @@ def get_training_arguments(
     train_batch_size=8,
     eval_batch_size=16,
     bf16_support=True,
+    train_on_full_dataset=False,
 ):
-    # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
-    extra_kwargs = {"fp16": True}
+    extra_kwargs = {
+        "fp16": True,  # INFER WITH FP16 BECAUSE KAGGLE IS T4 GPU
+        "do_eval": True,
+        "eval_strategy": IntervalStrategy.STEPS,
+        "load_best_model_at_end": True,
+    }
     if bf16_support:
         # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
         extra_kwargs = {"bf16": True}
+
+    if train_on_full_dataset:
+        extra_kwargs.pop("do_eval")
+        extra_kwargs.pop("evaluation_strategy")
+        extra_kwargs.pop("load_best_model_at_end")
+
     return TrainingArguments(
         output_dir="./output",
         do_train=True,
-        do_eval=True,
-        eval_strategy=IntervalStrategy.STEPS,
         save_strategy=SaveStrategy.STEPS,
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
@@ -129,7 +162,6 @@ def get_training_arguments(
         label_names=["labels"],
         metric_for_best_model="map@3",
         greater_is_better=True,
-        load_best_model_at_end=True,
         report_to="none",
         # gradient_accumulation_steps=4,
         # gradient_checkpointing=True,
@@ -146,8 +178,15 @@ def get_trainer(
     val_ds,
     compute_metrics=compute_map3,
     early_stopping_patience=5,
+    train_on_full_dataset=False,
 ):
     callbacks = [EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)]
+    extra_kwargs = {
+        "eval_dataset": val_ds,
+    }
+    if train_on_full_dataset:
+        extra_kwargs.pop("eval_dataset")
+
     return Trainer(
         model=model,
         args=training_args,
