@@ -149,7 +149,7 @@ def get_training_arguments(
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=2e-4,
+        learning_rate=2e-5,
         # weight_decay=0.01,
         # warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
