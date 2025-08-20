@@ -134,11 +134,12 @@ def get_training_arguments(
     }
     if bf16_support:
         # TRAIN WITH BF16 IF LOCAL GPU IS NEWER GPU
-        extra_kwargs = {"bf16": True}
+        extra_kwargs.pop("fp16")
+        extra_kwargs["bf16"] = True
 
     if train_on_full_dataset:
         extra_kwargs.pop("do_eval")
-        extra_kwargs.pop("evaluation_strategy")
+        extra_kwargs.pop("eval_strategy")
         extra_kwargs.pop("load_best_model_at_end")
 
     return TrainingArguments(
