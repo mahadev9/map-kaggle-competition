@@ -48,8 +48,8 @@ def convert_latex_to_text(text: str) -> str:
 
 def stringify_input(row, model_name) -> str:
     output = [
-        f"Question: {convert_latex_to_text(row['QuestionText'])}",
-        f"Answer: {convert_latex_to_text(row['MC_Answer'])}",
+        f"Question: {row['QuestionText']}",
+        f"Answer: {row['MC_Answer']}",
     ]
 
     # ModernBERT/DeBERTaV3
@@ -80,6 +80,9 @@ def stringify_input(row, model_name) -> str:
     #     elif row["is_student_explanation_correct"] == 2:
     #         x = "The student's explanation contains a misconception"
     #     output.append(x)
+
+    if "gemma" not in model_name.lower():
+        return convert_latex_to_text("\n".join(output))
 
     return "\n".join(output)
 
@@ -149,14 +152,14 @@ def get_training_arguments(
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=2e-5,
+        learning_rate=2e-4,
         # weight_decay=0.01,
         # warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
         # lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
-        logging_steps=100,
+        logging_steps=50,
         save_steps=500,
         eval_steps=500,
         save_total_limit=1,
