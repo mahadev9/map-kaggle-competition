@@ -86,6 +86,8 @@ def stringify_input(row, model_name) -> str:
 
 def compute_map3(eval_pred) -> Dict[str, float]:
     logits, labels = eval_pred
+    if len(logits) == 2:
+        logits = logits[0]
     probs = torch.nn.functional.softmax(torch.tensor(logits), dim=-1).numpy()
 
     top3 = np.argsort(-probs, axis=1)[:, :3]  # Top 3 predictions
@@ -120,6 +122,7 @@ def get_sequence_classifier(model_name, num_labels, q_lora_config={}):
 
 
 def get_training_arguments(
+    learning_rate=5e-5,
     epochs=10,
     train_batch_size=8,
     eval_batch_size=16,
@@ -149,16 +152,16 @@ def get_training_arguments(
         num_train_epochs=epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        learning_rate=2e-4,
-        # weight_decay=0.01,
+        learning_rate=learning_rate,
+        # weight_decay=0.02,
         # warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
         # lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
-        save_steps=500/2,
-        eval_steps=500/2,
+        save_steps=500,
+        eval_steps=500,
         save_total_limit=1,
         label_names=["labels"],
         metric_for_best_model="map@3",
@@ -196,5 +199,5 @@ def get_trainer(
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
         data_collator=DataCollatorWithPadding(tokenizer),
-        # callbacks=callbacks,
+        callbacks=callbacks,
     )
