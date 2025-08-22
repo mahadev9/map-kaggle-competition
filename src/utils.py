@@ -81,10 +81,7 @@ def stringify_input(row, model_name) -> str:
     #         x = "The student's explanation contains a misconception"
     #     output.append(x)
 
-    if "gemma" not in model_name.lower():
-        return convert_latex_to_text("\n".join(output))
-
-    return "\n".join(output)
+    return convert_latex_to_text("\n".join(output))
 
 
 def compute_map3(eval_pred) -> Dict[str, float]:
@@ -160,8 +157,8 @@ def get_training_arguments(
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
-        save_steps=500,
-        eval_steps=500,
+        save_steps=500/2,
+        eval_steps=500/2,
         save_total_limit=1,
         label_names=["labels"],
         metric_for_best_model="map@3",
