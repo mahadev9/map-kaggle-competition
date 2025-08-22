@@ -98,18 +98,18 @@ def compute_map3(eval_pred) -> Dict[str, float]:
     return {"map@3": scores.mean()}
 
 
-def get_tokenizer(model_name):
+def get_tokenizer(model_name: str):
     extra_kwargs = {}
-    if "modernbert" in model_name.lower():
+    if "modernbert" in model_name.lower() or "ettin" in model_name.lower():
         extra_kwargs = {
             "reference_compile": False,
         }
     return AutoTokenizer.from_pretrained(model_name, **extra_kwargs)
 
 
-def get_sequence_classifier(model_name, num_labels, q_lora_config={}):
+def get_sequence_classifier(model_name: str, num_labels, q_lora_config={}):
     extra_kwargs = {}
-    if "modernbert" in model_name.lower():
+    if "modernbert" in model_name.lower() or "ettin" in model_name.lower():
         extra_kwargs = {
             "reference_compile": False,
         }
