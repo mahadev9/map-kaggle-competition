@@ -65,6 +65,7 @@ def stringify_input(row, model_name) -> str:
         or "gemma" in model_name.lower()
         or "qwen" in model_name.lower()
         or "deepseek" in model_name.lower()
+        or "acereason" in model_name.lower()
     ):
         if "is_mc_answer_correct" in row:
             correctness = "Yes" if row["is_mc_answer_correct"] else "No"
@@ -160,8 +161,8 @@ def get_training_arguments(
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
-        save_steps=500,
-        eval_steps=500,
+        save_steps=500/2,
+        eval_steps=500/2,
         save_total_limit=1,
         label_names=["labels"],
         metric_for_best_model="map@3",
