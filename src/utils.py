@@ -200,5 +200,5 @@ def get_trainer(
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
         data_collator=DataCollatorWithPadding(tokenizer),
-        callbacks=callbacks,
+        # callbacks=callbacks,
     )
