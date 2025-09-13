@@ -69,7 +69,7 @@ def stringify_input(row, model_name) -> str:
     ):
         if "is_mc_answer_correct" in row:
             correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-            x = f"Correct? {correctness}"
+            x = f"Is the answer correct? {correctness}"
             output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
@@ -200,5 +200,5 @@ def get_trainer(
         tokenizer=tokenizer,
         compute_metrics=compute_metrics,
         data_collator=DataCollatorWithPadding(tokenizer),
-        # callbacks=callbacks,
+        callbacks=callbacks,
     )
