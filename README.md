@@ -15,9 +15,11 @@
 
 ### Ensemble Submission
 
-| Models | LB Score |
-|--------|----------|
-| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 0.946 |
-| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct | 0.944 |
-| Qwen3-14B, gemma-2-9b-it, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 0.945 |
-| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, Qwen3-Embedding-4B | 0.945 |
+| Models | Top@k | LB Score |
+|--------|-------|----------|
+| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 3 | 0.946 |
+| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 10 | 0.946 |
+| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct | 3 | 0.944 |
+| Qwen3-14B, gemma-2-9b-it, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 3 | 0.945 |
+| Qwen3-14B, gemma-2-9b-it, DeepSeek-R1-0528-Qwen3-8B, Qwen3-Embedding-4B | 3 | 0.945 |
+| Qwen3-14B, DeepSeek-R1-0528-Qwen3-8B, deepseek-math-7b-instruct, Qwen3-Embedding-4B | 3 | 0.945 |
