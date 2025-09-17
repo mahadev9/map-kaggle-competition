@@ -69,7 +69,7 @@ def stringify_input(row, model_name) -> str:
     ):
         if "is_mc_answer_correct" in row:
             correctness = "Yes" if row["is_mc_answer_correct"] else "No"
-            x = f"Is the answer correct? {correctness}"
+            x = f"Correct? {correctness}"
             output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
