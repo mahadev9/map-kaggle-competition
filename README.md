@@ -11,7 +11,7 @@
 | Qwen3-Embedding-4B        | QLoRA-4bit   | r=8, alpha=32 | 2e-4          | 16         | 0.945    | 0.942    |
 | AceReason-Nemotron-1.1-7B | QLoRA-4bit   | r=8, alpha=32 | 2e-4          | 16         | 0.943    | 0.938    |
 | Llama-3.1-8B-Instruct     | QLoRA-4bit   | r=8, alpha=32 | 2e-4          | 16         | 0.943    | 0.939    |
-| Ettin-Encoder-1b          | Fine-Tune    | -             | 4e-5          | 16         | 0.943    | 0.938    |
+| Ettin-Encoder-1b          | Fine-Tune    | -             | 4e-5          | 16         | 0.944    | 0.941    |
 
 ### Ensemble Submission
 
