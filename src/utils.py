@@ -2,6 +2,8 @@ import os
 import re
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from typing import Dict
 from transformers import (
@@ -176,6 +178,34 @@ def get_training_arguments(
     )
 
 
+class LabelSmoothingCrossEntropy(nn.Module):
+    def __init__(self, smoothing=0.1):
+        super().__init__()
+        self.smoothing = smoothing
+
+    def forward(self, pred, target):
+        n_class = pred.size(1)
+        one_hot = torch.zeros_like(pred).scatter(1, target.view(-1, 1), 1)
+        one_hot = one_hot * (1 - self.smoothing) + (1 - one_hot) * self.smoothing / (
+            n_class - 1
+        )
+        log_prob = F.log_softmax(pred, dim=1)
+        return -(one_hot * log_prob).sum(dim=1).mean()
+
+
+class CustomTrainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.get("labels")
+        outputs = model(**inputs)
+        logits = outputs.get("logits")
+
+        # Use label smoothing
+        loss_fct = LabelSmoothingCrossEntropy(smoothing=0.1)
+        loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+
+        return (loss, outputs) if return_outputs else loss
+
+
 def get_trainer(
     model,
     tokenizer,
@@ -193,7 +223,18 @@ def get_trainer(
     if train_on_full_dataset:
         extra_kwargs.pop("eval_dataset")
 
-    return Trainer(
+    # return Trainer(
+    #     model=model,
+    #     args=training_args,
+    #     train_dataset=train_ds,
+    #     eval_dataset=val_ds,
+    #     tokenizer=tokenizer,
+    #     compute_metrics=compute_metrics,
+    #     data_collator=DataCollatorWithPadding(tokenizer),
+    #     callbacks=callbacks,
+    # )
+
+    return CustomTrainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,
