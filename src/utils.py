@@ -223,18 +223,7 @@ def get_trainer(
     if train_on_full_dataset:
         extra_kwargs.pop("eval_dataset")
 
-    # return Trainer(
-    #     model=model,
-    #     args=training_args,
-    #     train_dataset=train_ds,
-    #     eval_dataset=val_ds,
-    #     tokenizer=tokenizer,
-    #     compute_metrics=compute_metrics,
-    #     data_collator=DataCollatorWithPadding(tokenizer),
-    #     callbacks=callbacks,
-    # )
-
-    return CustomTrainer(
+    return Trainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,
@@ -244,3 +233,14 @@ def get_trainer(
         data_collator=DataCollatorWithPadding(tokenizer),
         callbacks=callbacks,
     )
+
+    # return CustomTrainer(
+    #     model=model,
+    #     args=training_args,
+    #     train_dataset=train_ds,
+    #     eval_dataset=val_ds,
+    #     tokenizer=tokenizer,
+    #     compute_metrics=compute_metrics,
+    #     data_collator=DataCollatorWithPadding(tokenizer),
+    #     callbacks=callbacks,
+    # )
