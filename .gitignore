@@ -210,5 +210,7 @@ __marimo__/
 map-charting-student-math-misunderstandings/
 output/
 submission.csv
+oof_submission.csv
 label_encoder.joblib
 best_model/
+oof_models/
