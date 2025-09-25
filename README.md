@@ -42,3 +42,9 @@
 | Ratios | 1.2       | 0                         | 1.0                       | 1.2           | 0.8                | 0.8              | 0.947          |
 | Ratios | 0.8       | 0                         | 1.0                       | 1.2           | 0.8                | 0.8              | 0.947          |
 | Ratios | 1.2       | 0                         | 1.0                       | 1.2           | 1.0                | 0.8              | 0.947          |
+
+### OOF Training
+
+| Models           | Architecture | LoRA Config | NFolds | Learning Rate | Batch Size | CV Score | LB Score |
+| ---------------- | ------------ | ----------- | ------ | ------------- | ---------- | -------- | -------- |
+| Ettin-Encoder-1b | Fine-Tune    | -           | 5      | 4e-5          | 32         | -        | -        |
