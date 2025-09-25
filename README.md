@@ -45,6 +45,8 @@
 
 ### OOF Training
 
-| Models           | Architecture | LoRA Config | NFolds | Learning Rate | Batch Size | CV Score | LB Score |
-| ---------------- | ------------ | ----------- | ------ | ------------- | ---------- | -------- | -------- |
-| Ettin-Encoder-1b | Fine-Tune    | -           | 5      | 4e-5          | 32         | -        | -        |
+| Models                    | Architecture | LoRA Config   | NFolds | Learning Rate | Batch Size | CV Score                                              | LB Score |
+| ------------------------- | ------------ | ------------- | ------ | ------------- | ---------- | ----------------------------------------------------- | -------- |
+| Ettin-Encoder-1b          | Fine-Tune    | -             | 5      | 4e-5          | 32         | 0.94171, 0.94105, 0.94266, 0.94270, 0.94248 - 0.94212 | 0.942    |
+| deepseek-math-7b-instruct | QLoRA-4bit   | r=8, alpha=32 | 5      | 2e-4          | 16         | 0.93978, 0.94309, 0.94427, 0.94475, 0.94289 - 0.94295 | -        |
+

@@ -2,8 +2,6 @@ import os
 import re
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 from typing import Dict
 from transformers import (
@@ -164,8 +162,8 @@ def get_training_arguments(
         # lr_scheduler_kwargs={"min_lr": 1e-6},
         logging_dir="./logs",
         logging_steps=50,
-        save_steps=500/2,
-        eval_steps=500/2,
+        save_steps=500,
+        eval_steps=500,
         save_total_limit=1,
         label_names=["labels"],
         metric_for_best_model="map@3",
@@ -178,31 +176,18 @@ def get_training_arguments(
     )
 
 
-class LabelSmoothingCrossEntropy(nn.Module):
-    def __init__(self, smoothing=0.1):
-        super().__init__()
-        self.smoothing = smoothing
-
-    def forward(self, pred, target):
-        n_class = pred.size(1)
-        one_hot = torch.zeros_like(pred).scatter(1, target.view(-1, 1), 1)
-        one_hot = one_hot * (1 - self.smoothing) + (1 - one_hot) * self.smoothing / (
-            n_class - 1
-        )
-        log_prob = F.log_softmax(pred, dim=1)
-        return -(one_hot * log_prob).sum(dim=1).mean()
-
-
 class CustomTrainer(Trainer):
+    def __init__(self, class_weights, **kwargs):
+        super().__init__(**kwargs)
+        self.class_weights = class_weights
+
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
 
-        # Use label smoothing
-        loss_fct = LabelSmoothingCrossEntropy(smoothing=0.1)
+        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weights.to(logits.device))
         loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
-
         return (loss, outputs) if return_outputs else loss
 
 
@@ -215,6 +200,7 @@ def get_trainer(
     compute_metrics=compute_map3,
     early_stopping_patience=5,
     train_on_full_dataset=False,
+    class_weights=None,
 ):
     callbacks = [EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)]
     extra_kwargs = {
@@ -223,7 +209,20 @@ def get_trainer(
     if train_on_full_dataset:
         extra_kwargs.pop("eval_dataset")
 
-    return Trainer(
+    if class_weights is None:
+        return Trainer(
+            model=model,
+            args=training_args,
+            train_dataset=train_ds,
+            eval_dataset=val_ds,
+            tokenizer=tokenizer,
+            compute_metrics=compute_metrics,
+            data_collator=DataCollatorWithPadding(tokenizer),
+            callbacks=callbacks,
+        )
+
+    return CustomTrainer(
+        class_weights=class_weights,
         model=model,
         args=training_args,
         train_dataset=train_ds,
@@ -233,14 +232,3 @@ def get_trainer(
         data_collator=DataCollatorWithPadding(tokenizer),
         callbacks=callbacks,
     )
-
-    # return CustomTrainer(
-    #     model=model,
-    #     args=training_args,
-    #     train_dataset=train_ds,
-    #     eval_dataset=val_ds,
-    #     tokenizer=tokenizer,
-    #     compute_metrics=compute_metrics,
-    #     data_collator=DataCollatorWithPadding(tokenizer),
-    #     callbacks=callbacks,
-    # )
