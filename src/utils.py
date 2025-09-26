@@ -47,6 +47,26 @@ def convert_latex_to_text(text: str) -> str:
 
 
 def stringify_input(row, model_name) -> str:
+    correctness = "correct" if row.get("is_mc_answer_correct", False) else "incorrect"
+
+    prompt = f"""Mathematical Problem Analysis:
+
+Question: {row["QuestionText"]}
+Student Answer: {row["MC_Answer"]} (This answer is {correctness})
+Student Reasoning: {row["StudentExplanation"]}
+
+Task: Identify the specific misconception or confirm correct understanding.
+
+Common misconceptions in this area include:
+- Arithmetic errors
+- Conceptual misunderstandings
+- Procedural mistakes
+- Misapplication of rules
+
+Student's misconception category:"""
+
+    return convert_latex_to_text(prompt)
+
     output = [
         f"Question: {row['QuestionText']}",
         f"Answer: {row['MC_Answer']}",
@@ -74,15 +94,6 @@ def stringify_input(row, model_name) -> str:
             output.append(x)
 
     output.append(f"Student's Explanation: {row['StudentExplanation']}")
-    # if "is_student_explanation_correct" in row:
-    #     if row["is_student_explanation_correct"] == 0:
-    #         x = "The student's explanation is neither correct nor a misconception"
-    #     elif row["is_student_explanation_correct"] == 1:
-    #         x = "The student's explanation is correct"
-    #     elif row["is_student_explanation_correct"] == 2:
-    #         x = "The student's explanation contains a misconception"
-    #     output.append(x)
-
     return convert_latex_to_text("\n".join(output))
 
 
