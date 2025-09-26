@@ -46,10 +46,12 @@ def convert_latex_to_text(text: str) -> str:
     return text.strip()
 
 
-def stringify_input(row, model_name) -> str:
-    correctness = "correct" if row.get("is_mc_answer_correct", False) else "incorrect"
+def stringify_input(row, model_name, new_prompt=False) -> str:
 
-    prompt = f"""Mathematical Problem Analysis:
+    if new_prompt:
+        correctness = "correct" if row.get("is_mc_answer_correct", False) else "incorrect"
+
+        prompt = f"""Mathematical Problem Analysis:
 
 Question: {row["QuestionText"]}
 Student Answer: {row["MC_Answer"]} (This answer is {correctness})
@@ -65,7 +67,7 @@ Common misconceptions in this area include:
 
 Student's misconception category:"""
 
-    return convert_latex_to_text(prompt)
+        return convert_latex_to_text(prompt)
 
     output = [
         f"Question: {row['QuestionText']}",
