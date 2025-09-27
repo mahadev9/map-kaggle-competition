@@ -53,7 +53,11 @@
 | Ettin-Encoder-1b          | Fine-Tune    | -             | 5      | 4e-5          | 32         | 0.94171, 0.94105, 0.94266, 0.94270, 0.94248 - 0.94212 | 0.942    |
 | deepseek-math-7b-instruct | QLoRA-4bit   | r=8, alpha=32 | 5      | 2e-4          | 16         | 0.93978, 0.94309, 0.94427, 0.94475, 0.94289 - 0.94295 | 0.945    |
 | gemma-2-9b-it             | QLoRA-4bit   | r=8, alpha=32 | 5      | 2e-4          | 16         | -                                                     | -        |
+| Qwen/Qwen3-1.7B           | Fine-Tune    | -             | 5      | 4e-5          | 16         | 0.93921, 0.93961, 0.94027, 0.94168, 0.94227 - 0.94061 | -        |
 
 ### OOF Ensemble Submission
 
+| Ettin-Encoder-1b | deepseek-math-7b-instruct | gemma-2-9b-it | LB Score |
+| ---------------- | ------------------------- | ------------- | -------- |
+| ✅                | ✅                         | ❌             | -        |
 
