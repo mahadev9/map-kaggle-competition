@@ -2,6 +2,8 @@ import os
 import re
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from typing import Dict
 from transformers import (
@@ -168,7 +170,7 @@ def get_training_arguments(
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         learning_rate=learning_rate,
-        # weight_decay=0.02,
+        weight_decay=0.02,
         # warmup_ratio=0.1,
         lr_scheduler_type=SchedulerType.LINEAR,
         # lr_scheduler_type=SchedulerType.COSINE_WITH_MIN_LR,
@@ -182,6 +184,7 @@ def get_training_arguments(
         metric_for_best_model="map@3",
         greater_is_better=True,
         report_to="none",
+        label_smoothing_factor=0.1,
         # gradient_accumulation_steps=4,
         # gradient_checkpointing=True,
         # use_mps_device=True,  # Use MPS for Apple Silicon
@@ -189,18 +192,50 @@ def get_training_arguments(
     )
 
 
+class FocalLoss(nn.Module):
+    """
+    Focal Loss for handling class imbalance
+    Focuses training on hard examples
+    """
+    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+        super().__init__()
+        self.alpha = alpha  # class weights
+        self.gamma = gamma  # focusing parameter
+        self.reduction = reduction
+    
+    def forward(self, inputs, targets):
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
+        pt = torch.exp(-ce_loss)
+        focal_loss = ((1 - pt) ** self.gamma) * ce_loss
+        
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        return focal_loss
+
+
 class CustomTrainer(Trainer):
-    def __init__(self, class_weights, **kwargs):
+    def __init__(self, loss_type="focal", class_weights=None, focal_gamma=2.0, **kwargs):
         super().__init__(**kwargs)
+        self.loss_type = loss_type
         self.class_weights = class_weights
+        self.focal_gamma = focal_gamma
+        
+        if self.loss_type == "focal":
+            self.criterion = FocalLoss(alpha=self.class_weights, gamma=self.focal_gamma)
 
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get("logits")
 
-        loss_fct = torch.nn.CrossEntropyLoss(weight=self.class_weights.to(logits.device))
-        loss = loss_fct(logits.view(-1, self.model.config.num_labels), labels.view(-1))
+        if self.loss_type == 'focal':
+            loss = self.criterion(logits, labels)
+        elif self.loss_type == 'weighted_ce':
+            loss = F.cross_entropy(logits, labels, weight=self.class_weights)
+        else:
+            loss = F.cross_entropy(logits, labels)
         return (loss, outputs) if return_outputs else loss
 
 
@@ -214,6 +249,8 @@ def get_trainer(
     early_stopping_patience=5,
     train_on_full_dataset=False,
     class_weights=None,
+    use_focal_loss=False,
+    focal_gamma=2.0,
 ):
     callbacks = [EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)]
     extra_kwargs = {
@@ -221,6 +258,8 @@ def get_trainer(
     }
     if train_on_full_dataset:
         extra_kwargs.pop("eval_dataset")
+
+    loss_type = 'focal' if use_focal_loss else ('weighted_ce' if class_weights is not None else 'ce')
 
     if class_weights is None:
         return Trainer(
@@ -236,6 +275,8 @@ def get_trainer(
 
     return CustomTrainer(
         class_weights=class_weights,
+        loss_type=loss_type,
+        focal_gamma=focal_gamma,
         model=model,
         args=training_args,
         train_dataset=train_ds,
