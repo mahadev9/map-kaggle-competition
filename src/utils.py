@@ -179,7 +179,7 @@ def get_training_arguments(
         logging_steps=50,
         save_steps=500,
         eval_steps=500,
-        save_total_limit=5,
+        save_total_limit=3,
         label_names=["labels"],
         metric_for_best_model="map@3",
         greater_is_better=True,
