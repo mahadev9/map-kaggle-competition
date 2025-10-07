@@ -49,9 +49,10 @@ def convert_latex_to_text(text: str) -> str:
 
 
 def stringify_input(row, model_name, new_prompt=False) -> str:
-
     if new_prompt:
-        correctness = "correct" if row.get("is_mc_answer_correct", False) else "incorrect"
+        correctness = (
+            "correct" if row.get("is_mc_answer_correct", False) else "incorrect"
+        )
 
         prompt = f"""Mathematical Problem Analysis:
 
@@ -197,31 +198,34 @@ class FocalLoss(nn.Module):
     Focal Loss for handling class imbalance
     Focuses training on hard examples
     """
-    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+
+    def __init__(self, alpha=None, gamma=2.0, reduction="mean"):
         super().__init__()
         self.alpha = alpha  # class weights
         self.gamma = gamma  # focusing parameter
         self.reduction = reduction
-    
+
     def forward(self, inputs, targets):
-        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
+        ce_loss = F.cross_entropy(inputs, targets, reduction="none", weight=self.alpha)
         pt = torch.exp(-ce_loss)
         focal_loss = ((1 - pt) ** self.gamma) * ce_loss
-        
-        if self.reduction == 'mean':
+
+        if self.reduction == "mean":
             return focal_loss.mean()
-        elif self.reduction == 'sum':
+        elif self.reduction == "sum":
             return focal_loss.sum()
         return focal_loss
 
 
 class CustomTrainer(Trainer):
-    def __init__(self, loss_type="focal", class_weights=None, focal_gamma=2.0, **kwargs):
+    def __init__(
+        self, loss_type="focal", class_weights=None, focal_gamma=2.0, **kwargs
+    ):
         super().__init__(**kwargs)
         self.loss_type = loss_type
         self.class_weights = class_weights
         self.focal_gamma = focal_gamma
-        
+
         if self.loss_type == "focal":
             self.criterion = FocalLoss(alpha=self.class_weights, gamma=self.focal_gamma)
 
@@ -230,9 +234,9 @@ class CustomTrainer(Trainer):
         outputs = model(**inputs)
         logits = outputs.get("logits")
 
-        if self.loss_type == 'focal':
+        if self.loss_type == "focal":
             loss = self.criterion(logits, labels)
-        elif self.loss_type == 'weighted_ce':
+        elif self.loss_type == "weighted_ce":
             loss = F.cross_entropy(logits, labels, weight=self.class_weights)
         else:
             loss = F.cross_entropy(logits, labels)
@@ -259,7 +263,11 @@ def get_trainer(
     if train_on_full_dataset:
         extra_kwargs.pop("eval_dataset")
 
-    loss_type = 'focal' if use_focal_loss else ('weighted_ce' if class_weights is not None else 'ce')
+    loss_type = (
+        "focal"
+        if use_focal_loss
+        else ("weighted_ce" if class_weights is not None else "ce")
+    )
 
     if class_weights is None:
         return Trainer(
